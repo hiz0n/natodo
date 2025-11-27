@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { StyleSheet, Text, View, TextInput, Platform, FlatList, Pressable, Image } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react'
+import { StyleSheet, Text, View, TextInput, Platform, FlatList, Pressable, Image, Animated } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as ImagePicker from 'expo-image-picker'
 
@@ -15,6 +15,36 @@ export default function App() {
   const [editDate, setEditDate] = useState(new Date())
   const [editPhoto, setEditPhoto] = useState(null)
   const [editShowPicker, setEditShowPicker] = useState(false)
+
+  // 타이틀 애니메이션
+  const titleScale = useRef(new Animated.Value(1)).current
+  const titleColor = useRef(new Animated.Value(0)).current; // 0 = #333 , 1 = #888
+
+
+  useEffect(() => {
+    const loopAnim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(titleColor, {
+          toValue : 1,
+          duration : 800, 
+          useNativeDriver : false,
+        }),
+        Animated.timing(titleColor, {
+          toValue : 0,
+          duration : 800,
+          useNativeDriver : false,
+        }),
+        Animated.delay(1400),
+      ])
+    )
+
+    loopAnim.start()
+    return () => loopAnim.stop()
+  }, [])
+
+  // 리스트가 추가될 때 애니메이션
+  
+
 
   // 날짜 포맷
   const formatDate = (d) => {
@@ -146,7 +176,11 @@ export default function App() {
     <View style={styles.container}>
       <View style={styles.outBox}>
         <Text style={styles.todayText}>{formatToday()}</Text>
-        <Text style={styles.title}>To-Do List</Text>
+        <Animated.Text style={[styles.title, {color:titleColor.interpolate({
+          inputRange : [0, 1],
+          outputRange : ['#333', '#bbb']
+        })}]}>To-Do List</Animated.Text>
+        
 
         {/* 입력 */}
         <TextInput
